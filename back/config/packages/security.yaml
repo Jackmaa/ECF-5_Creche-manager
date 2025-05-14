@@ -1,0 +1,46 @@
+security:
+  # 1. Encodage des mots de passe
+  password_hashers:
+    App\Entity\User:
+      algorithm: auto
+
+  # 2. Où chercher les utilisateurs
+  providers:
+    app_user_provider:
+      entity:
+        class: App\Entity\User
+        property: email
+
+  # 3. Les firewalls (zones de sécurité)
+  firewalls:
+    # Route publique pour se connecter
+    login:
+      pattern: ^/api/login
+      stateless: true
+      json_login:
+        check_path: /api/login
+        username_path: email
+        password_path: password
+        success_handler: lexik_jwt_authentication.handler.authentication_success
+        failure_handler: lexik_jwt_authentication.handler.authentication_failure
+
+    # Zone protégée par JWT
+    api:
+      pattern: ^/api
+      stateless: true
+      jwt: ~
+
+    # Désactive la sécurité pour les assets de dev
+    dev:
+      pattern: ^/(_(profiler|wdt)|css|images|js)/
+      security: false
+
+  # 4. Contrôle d’accès par rôle
+  access_control:
+    - { path: ^/api/login, roles: IS_AUTHENTICATED_ANONYMOUSLY }
+    - { path: ^/api/admin, roles: ROLE_ADMIN }
+    - { path: ^/api, roles: IS_AUTHENTICATED_FULLY }
+
+  # 5. Hiérarchie de rôles
+  role_hierarchy:
+    ROLE_ADMIN: ROLE_USER
