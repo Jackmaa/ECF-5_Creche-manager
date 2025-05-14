@@ -1,0 +1,50 @@
+version: "3.8"
+
+services:
+  symfony:
+    build:
+      context: ./back
+      dockerfile: Dockerfile
+    container_name: creche-back
+    volumes:
+      - ./back:/var/www/html
+    ports:
+      - "8000:8000"
+    environment:
+      - APP_ENV=dev
+    depends_on:
+      - db
+    command: php -S 0.0.0.0:8000 -t public
+
+  db:
+    image: mysql:8
+    container_name: creche-db
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: creche
+      MYSQL_USER: symfony
+      MYSQL_PASSWORD: symfony
+    ports:
+      - "3306:3306"
+    volumes:
+      - db_data:/var/lib/mysql
+
+  vue:
+    build:
+      context: ./front
+      dockerfile: Dockerfile
+    container_name: creche-front
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./front:/app
+      - /app/node_modules
+    command: npm run dev
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:5173 || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+volumes:
+  db_data:
