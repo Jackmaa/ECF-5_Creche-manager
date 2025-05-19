@@ -11,7 +11,12 @@ final class AuthController extends AbstractController
     #[Route('/api/me', name: 'api_me', methods: ['GET'])]
     public function me(): JsonResponse
     {
+        //Ajout de l'annotation PHPDoc pour éviter l'autocomplétion de râler
+        /** @var \App\Entity\User $user */
         $user = $this->getUser();
+        // Passage en prod
+        // assert($user instanceof \App\Entity\User);
+
 
         if (!$user) {
             return $this->json(['error' => 'Unauthorized'], 401);
