@@ -10,6 +10,7 @@ security:
       entity:
         class: App\Entity\User
         property: email
+    # used to reload user from session & other features (e.g. switch_user)
 
   # 3. Les firewalls (zones de sécurité)
   firewalls:
@@ -39,6 +40,8 @@ security:
   access_control:
     - { path: ^/api/login, roles: IS_AUTHENTICATED_ANONYMOUSLY }
     - { path: ^/api/admin, roles: ROLE_ADMIN }
+    - { path: ^/api/enfants, roles: ROLE_PARENT }
+    - { path: ^/api/presences, roles: IS_AUTHENTICATED_FULLY }
     - { path: ^/api, roles: IS_AUTHENTICATED_FULLY }
 
   # 5. Hiérarchie de rôles
