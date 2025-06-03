@@ -4,6 +4,8 @@ namespace App\Controller;
 
 use App\Entity\User;
 use App\Entity\Child;
+use App\Repository\ChildRepository;
+use Doctrine\Common\Collections\Collection;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 use Symfony\Component\HttpKernel\Exception\UnauthorizedHttpException;
@@ -41,13 +43,27 @@ abstract class BaseController extends AbstractController
         $this->requireRole('ROLE_PARENT');
     }
 
-    // protected function requireParentOfChild(Child $child): void
-    // {
-    //     $user = $this->getUserOrThrow();
-    //     $parents = $child->getParents(); // assuming ManyToMany or OneToMany
+    protected function requireParentOfChild(Child $child): void
+    {
+        $user = $this->getUserOrThrow();
 
-    //     if (!$parents->contains($user)) {
-    //         throw new AccessDeniedHttpException("Vous n'êtes pas responsable de cet enfant.");
-    //     }
-    // }
+        if (!$user->getChildren()->contains($child)) {
+            throw new AccessDeniedHttpException("Vous n'êtes pas responsable de cet enfant.");
+        }
+    }
+
+    protected function getChildrenForUser(ChildRepository $repo): array
+    {
+        $user = $this->getUserOrThrow();
+
+        // Admin peut voir tous les enfants
+        if ($this->isGranted('ROLE_ADMIN')) {
+            return $repo->findAll();
+        }
+
+        // Parent → uniquement ses enfants
+        return $user->getChildren()->toArray();
+    }
+
+
 }

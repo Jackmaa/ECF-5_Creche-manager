@@ -39,4 +39,11 @@ module.exports = {
       "winter",
     ],
   },
+  extend: {
+    colors: {
+      "clr-success": "#10b981", // emerald-500
+      "clr-error": "#ef4444", // red-500
+      "clr-warning": "#f59e0b", // amber-500
+    },
+  },
 };

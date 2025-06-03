@@ -40,7 +40,7 @@ security:
   access_control:
     - { path: ^/api/login, roles: IS_AUTHENTICATED_ANONYMOUSLY }
     - { path: ^/api/admin, roles: ROLE_ADMIN }
-    - { path: ^/api/enfants, roles: ROLE_PARENT }
+    - { path: ^/api/children, roles: ROLE_PARENT }
     - { path: ^/api/presences, roles: IS_AUTHENTICATED_FULLY }
     - { path: ^/api/me, roles: IS_AUTHENTICATED_FULLY }
     - { path: ^/api, roles: IS_AUTHENTICATED_FULLY }

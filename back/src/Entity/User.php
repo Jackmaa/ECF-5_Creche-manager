@@ -1,5 +1,4 @@
 <?php
-
 namespace App\Entity;
 
 use App\Repository\UserRepository;
@@ -11,8 +10,7 @@ use Symfony\Component\Security\Core\User\UserInterface;
 
 #[ORM\Entity(repositoryClass: UserRepository::class)]
 #[ORM\UniqueConstraint(name: 'UNIQ_IDENTIFIER_EMAIL', fields: ['email'])]
-class User implements UserInterface, PasswordAuthenticatedUserInterface
-{
+class User implements UserInterface, PasswordAuthenticatedUserInterface {
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
@@ -39,18 +37,27 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\OneToMany(targetEntity: RefreshToken::class, mappedBy: 'user')]
     private Collection $refreshTokens;
 
-    public function __construct()
-    {
+    /**
+     * @var Collection<int, Child>
+     */
+    #[ORM\ManyToMany(targetEntity: Child::class, mappedBy: 'parents')]
+    private Collection $Children;
+
+    #[ORM\Column(nullable: true)]
+    private ?string $registrationToken = null;
+
+    private bool $isVerified = false;
+
+    public function __construct() {
         $this->refreshTokens = new ArrayCollection();
+        $this->Children      = new ArrayCollection();
     }
 
-    public function getId(): ?int
-    {
+    public function getId(): ?int {
         return $this->id;
     }
 
-    public function getEmail(): ?string
-    {
+    public function getEmail(): ?string {
         return $this->email;
     }
 
@@ -66,16 +73,14 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
      *
      * @see UserInterface
      */
-    public function getUserIdentifier(): string
-    {
+    public function getUserIdentifier(): string {
         return (string) $this->email;
     }
 
     /**
      * @see UserInterface
      */
-    public function getRoles(): array
-    {
+    public function getRoles(): array {
         $roles = $this->roles;
         // guarantee every user at least has ROLE_USER
         $roles[] = 'ROLE_USER';
@@ -96,8 +101,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     /**
      * @see PasswordAuthenticatedUserInterface
      */
-    public function getPassword(): ?string
-    {
+    public function getPassword(): ?string {
         return $this->password;
     }
 
@@ -108,11 +112,19 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this;
     }
 
+    public function getRegistrationToken(): ?string {
+        return $this->registrationToken;
+    }
+
+    public function setRegistrationToken(?string $token): self {
+        $this->registrationToken = $token;
+        return $this;
+    }
+
     /**
      * @see UserInterface
      */
-    public function eraseCredentials(): void
-    {
+    public function eraseCredentials(): void {
         // If you store any temporary, sensitive data on the user, clear it here
         // $this->plainPassword = null;
     }
@@ -120,14 +132,13 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     /**
      * @return Collection<int, RefreshToken>
      */
-    public function getRefreshTokens(): Collection
-    {
+    public function getRefreshTokens(): Collection {
         return $this->refreshTokens;
     }
 
     public function addRefreshToken(RefreshToken $refreshToken): static
     {
-        if (!$this->refreshTokens->contains($refreshToken)) {
+        if (! $this->refreshTokens->contains($refreshToken)) {
             $this->refreshTokens->add($refreshToken);
             $refreshToken->setUser($this);
         }
@@ -142,6 +153,32 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
             if ($refreshToken->getUser() === $this) {
                 $refreshToken->setUser(null);
             }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Child>
+     */
+    public function getChildren(): Collection {
+        return $this->Children;
+    }
+
+    public function addChild(Child $child): static
+    {
+        if (! $this->Children->contains($child)) {
+            $this->Children->add($child);
+            $child->addParent($this);
+        }
+
+        return $this;
+    }
+
+    public function removeChild(Child $child): static
+    {
+        if ($this->Children->removeElement($child)) {
+            $child->removeParent($this);
         }
 
         return $this;
